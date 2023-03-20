@@ -180,7 +180,7 @@ if "test_disabled" not in st.session_state:
 openai_key_container = st.container()
 ui_sidebar()
 
-st.title('GPT Lab: OpenAI GPT Model Tester')
+st.title('OpenAI GPT Model Comparison Tool')
 if "oai_api_key" not in st.session_state: 
     st.write(helper_app_need_api_key)
     ui_introduction()
