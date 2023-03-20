@@ -7,7 +7,7 @@ This [Streamlit](https://streamlit.io) app allows you to test the effectiveness 
 To get started, enter an initial prompt and, optionally, a follow-up message. You can also adjust the model parameters to fine-tune your tests. You can keep adding additional follow-up messages to have test conversations with the models. 
 
 ## Accessing the App 
-You can access the app on the Streamlit Cloud community at [gptlab-openai-model-compare.streamlit.app](https://gptlab-openai-model-tester.streamlit.app).
+You can access the app on the Streamlit Cloud community at [openai-lm-compare.streamlit.app](https://openai-lm-compare.streamlit.app/).
 
 ## Getting Started
 To use the app, you will need an OpenAI API key. Don't have one yet? Create one on [the OpenAI webiste](https://platform.openai.com/account/api-keys). Once you have your API key, enter it into the app when prompted. 
