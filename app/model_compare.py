@@ -160,12 +160,14 @@ def _ui_link(url, label, font_awesome_icon):
 
 
 def ui_ctas():
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1: 
         _ui_link(url="https://twitter.com/dclin", label="Let's connect", font_awesome_icon="fa-twitter")
     with col2: 
         _ui_link(url="https://www.buymeacoffee.com/gptlab", label="Buy me a coffee", font_awesome_icon="fa-coffee")
     with col3:
+        _ui_link(url="https://gptlab.streamlit.app", label="Check out GPT Lab", font_awesome_icon="fa-android")
+    with col4:
         _ui_link(url="https://gptlab.beehiiv.com/subscribe", label="Subscribe to news and updates", font_awesome_icon="fa-newspaper-o")
 
 
