@@ -2,6 +2,7 @@ import openai
 import streamlit as st 
 import datetime 
 import pytz 
+import time 
 
 def get_current_time():
     return datetime.datetime.now(pytz.timezone('US/Pacific'))
