@@ -80,6 +80,8 @@ class open_ai:
                 response = self._get_chat_completion(model_config_dict, submit_messages)
                 bot_message = response['choices'][0]['message']['content']
                 total_tokens = response['usage']['total_tokens']
+                prompt_tokens = response['usage']['prompt_tokens']
+                completion_tokens = response['usage']['completion_tokens']
             except Exception as e:
                 raise 
         else:
@@ -87,12 +89,14 @@ class open_ai:
                 response = self._get_completion(model_config_dict, submit_messages)
                 bot_message = response['choices'][0]['text']
                 total_tokens = response['usage']['total_tokens']
+                prompt_tokens = response['usage']['prompt_tokens']
+                completion_tokens = response['usage']['completion_tokens']
             except Exception as e:
                 raise
         
         new_messages = messages + [{'role':'assistant','message':bot_message.strip(),'created_date':get_current_time()}]
 
-        return {'messages':new_messages, 'total_tokens':total_tokens}   
+        return {'messages':new_messages, 'total_tokens':total_tokens, 'prompt_tokens':prompt_tokens, 'completion_tokens': completion_tokens}   
 
 
     def _get_chat_completion(self, model_config_dict, messages):
