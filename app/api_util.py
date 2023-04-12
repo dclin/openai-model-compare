@@ -20,14 +20,29 @@ class open_ai:
         self.restart_sequence = restart_sequence
 
 
-    def _invoke_call(self, call_string):
+    def _invoke_call(self, call_string, max_tries=3, initial_backoff=1):
         """Generic function to invoke openai calls"""
-        try:
-            result = eval(f"{call_string}")
-            return result      
+        RETRY_EXCEPTIONS = (
+            openai.error.APIError, 
+            openai.error.Timeout, 
+            openai.error.APIConnectionError, 
+            openai.error.ServiceUnavailableError
+        )
+        tries = 0
+        backoff = initial_backoff
 
-        except Exception as e: 
-            raise 
+        while True: 
+            try:
+                result = eval(f"{call_string}")
+                return result     
+
+            except Exception as e:
+                if isinstance(e, RETRY_EXCEPTIONS) and tries < max_tries:
+                    time.sleep(backoff)
+                    backoff *= 2
+                    tries +=1
+                else:
+                    raise self.OpenAIError(f"OpenAI: {str(e)}") from e 
 
     def get_moderation(self, user_message):
         """Main function to get moderation on a user message"""
@@ -86,16 +101,16 @@ class open_ai:
         if model_config_validated:
             get_completion_call_string = (
             """openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages={0},
-                temperature={1},
-                max_tokens={2},
-                top_p={3},
-                frequency_penalty={4},
-                presence_penalty={5},
-                stop=['{6}']
+                model="{0}",
+                messages={1},
+                temperature={2},
+                max_tokens={3},
+                top_p={4},
+                frequency_penalty={5},
+                presence_penalty={6},
+                stop=['{7}']
                 )""").format(
-                    #model_config_dict['model'],
+                    model_config_dict['model'],
                     oai_messages,
                     model_config_dict['temperature'],
                     model_config_dict['max_tokens'],
