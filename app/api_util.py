@@ -13,6 +13,8 @@ class open_ai:
     class BadRequest(Exception):
         pass
 
+    class OpenAIError(Exception):
+        pass 
 
     def __init__(self, api_key, restart_sequence, stop_sequence):
         self.api_key = api_key

@@ -34,6 +34,8 @@ def handler_verify_key():
         st.session_state.total_tokens = {model: 0 for model in st.session_state.openai_models}
         st.session_state.prompt_tokens = {model: 0 for model in st.session_state.openai_models}
         st.session_state.completion_tokens = {model: 0 for model in st.session_state.openai_models}
+        st.session_state.conversation_cost = {model: 0 for model in st.session_state.openai_models}
+
 
         # store OpenAI API key in session states 
         st.session_state.oai_api_key = oai_api_key
@@ -80,6 +82,16 @@ def handler_fetch_model_responses():
                 st.session_state.prompt_tokens[m]=b_r['prompt_tokens']
                 st.session_state.completion_tokens[m]=b_r['completion_tokens']
 
+                if m == 'gpt-4':
+                    # $0.03 / 1K prompt tokens + $0.06 / 1K completion tokens
+                    st.session_state.conversation_cost[m] = 0.03 * st.session_state.prompt_tokens[m] / 1000 + 0.06 * st.session_state.completion_tokens[m] / 1000
+                elif m == 'gpt-3.5-turbo':
+                    # 0.002 / 1K total tokens 
+                    st.session_state.conversation_cost[m] = 0.002 * st.session_state.total_tokens[m] / 1000
+                elif m == 'text-davinci-003':
+                    # 0.02 / 1K total tokens 
+                    st.session_state.conversation_cost[m] = 0.02 * st.session_state.total_tokens[m] / 1000
+
                 # update the progress bar 
                 progress = (index + 1) / len(st.session_state.openai_models)
                 progress_bar_container.progress(progress, text=f"Getting {m} responses")
@@ -98,7 +110,7 @@ def handler_start_new_test():
     st.session_state.total_tokens = {model: 0 for model in st.session_state.openai_models}
     st.session_state.prompt_tokens = {model: 0 for model in st.session_state.openai_models}
     st.session_state.completion_tokens = {model: 0 for model in st.session_state.openai_models}
-
+    st.session_state.conversation_cost = {model: 0 for model in st.session_state.openai_models}
 
 def ui_sidebar():
     with st.sidebar:
@@ -150,15 +162,10 @@ def ui_test_result(progress_bar_container):
             if len(st.session_state.chat_histories[model_name])>0:
                 with columns[index]:
                     st.write(f'_Conversation with {model_name}_')
-                    st.write(f'Total tokens {st.session_state.total_tokens[model_name]}')
-                    st.write(f'Prompt tokens {st.session_state.prompt_tokens[model_name]}')
-                    st.write(f'Completion tokens {st.session_state.completion_tokens[model_name]}')
-                    if model_name == 'gpt-4': 
-                        st.write(f'Total cost: ${0.03*st.session_state.prompt_tokens[model_name]/1000 + 0.06*st.session_state.completion_tokens[model_name]/1000}')
-                    elif model_name == 'gpt-3.5-turbo':
-                        st.write(f'Total cost: ${0.002*st.session_state.total_tokens[model_name]/1000}')
-                    elif model_name == 'text-davinci-003':
-                        st.write(f'Total cost: ${0.02*st.session_state.total_tokens[model_name]/1000}')
+                    st.write(f'Total tokens: {st.session_state.total_tokens[model_name]}')
+                    st.write(f'Prompt tokens: {st.session_state.prompt_tokens[model_name]}')
+                    st.write(f'Completion tokens: {st.session_state.completion_tokens[model_name]}')
+                    st.write(f'Total cost: ${st.session_state.conversation_cost[model_name]}')
                     st.write("---")
                     for message in st.session_state.chat_histories[model_name]:
                         if message['role'] == 'user': 
