@@ -7,6 +7,15 @@ import time
 def get_current_time():
     return datetime.datetime.now(pytz.timezone('US/Pacific'))
 
+def escape_special_chars(text):
+    return (
+        text.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("'", "\\'")
+        .replace("\n", "\\n")
+        .replace("\t", "\\t")
+        .replace("\r", "\\r")
+    )  
 
 class open_ai:
 
@@ -52,7 +61,7 @@ class open_ai:
 
     def get_moderation(self, user_message):
         """Main function to get moderation on a user message"""
-        get_moderation_call_string = ("""openai.Moderation.create(input="{0}")""".format(user_message))
+        get_moderation_call_string = ("""openai.Moderation.create(input="{0}")""".format(escape_special_chars(user_message)))
 
         try:
             moderation = self._invoke_call(get_moderation_call_string)
@@ -182,9 +191,9 @@ class open_ai:
         msg_string = ""
         for message in messages:
             if message['role'] == 'user' or message['role'] == 'system':
-                msg_string += message['message'].replace("\"","'") + self.stop_sequence
+                msg_string += escape_special_chars(message['message']) + self.stop_sequence
             else:
-                msg_string += message['message'].replace("\"","'") + self.restart_sequence
+                msg_string += escape_special_chars(message['message']) + self.restart_sequence
         return msg_string
 
 
@@ -192,7 +201,8 @@ class open_ai:
         oai_messages = []
         if len(messages) > 0:
             for message in messages:
-                oai_messages.append({'role':message['role'], 'content':message['message']})
+                oai_messages.append({'role':message['role'], 'content':escape_special_chars(message['message'])})
         return oai_messages 
+
 
 
