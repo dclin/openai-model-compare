@@ -70,23 +70,34 @@ def handler_fetch_model_responses():
 
     # Moderate prompt  
     if init_prompt and init_prompt != '':
-        moderation_result = o.get_moderation(user_message = init_prompt)
-        if moderation_result['flagged'] == True:
-            user_query_moderated = False 
-            flagged_categories_str = ", ".join(moderation_result['flagged_categories'])
+        try:
+            moderation_result = o.get_moderation(user_message = init_prompt)
+            if moderation_result['flagged'] == True:
+                user_query_moderated = False 
+                flagged_categories_str = ", ".join(moderation_result['flagged_categories'])
+                with openai_key_container:
+                    st.error(f"⚠️ Your prompt has been flagged by OpenAI's content moderation endpoint due to the following categories: {flagged_categories_str}.  \n" +
+                    "In order to comply with [OpenAI's usage policy](https://openai.com/policies/usage-policies), we cannot send this prompt to the models. Please modify your prompt and try again.")
+        except Exception as e: 
+            logging.error(f"{e}")
             with openai_key_container:
-                st.error(f"⚠️ Your prompt has been flagged by OpenAI's content moderation endpoint due to the following categories: {flagged_categories_str}.  \n" +
-                "In order to comply with [OpenAI's usage policy](https://openai.com/policies/usage-policies), we cannot send this prompt to the models. Please modify your prompt and try again.")
+                st.error(f"{e}")
+
 
     # Moderate follow-up message 
     if "user_msg" in st.session_state and st.session_state.user_msg != '':
-        moderation_result = o.get_moderation(user_message = st.session_state.user_msg)
-        if moderation_result['flagged'] == True:
-            user_query_moderated = False 
-            flagged_categories_str = ", ".join(moderation_result['flagged_categories'])
+        try:
+            moderation_result = o.get_moderation(user_message = st.session_state.user_msg)
+            if moderation_result['flagged'] == True:
+                user_query_moderated = False 
+                flagged_categories_str = ", ".join(moderation_result['flagged_categories'])
+                with openai_key_container:
+                    st.error(f"⚠️ Your most recent follow up message has been flagged by OpenAI's content moderation endpoint due to the following categories: {flagged_categories_str}.  \n" +
+                    "In order to comply with [OpenAI's usage policy](https://openai.com/policies/usage-policies), we cannot send this message to the models. Please modify your message and try again.")
+        except Exception as e: 
+            logging.error(f"{e}")
             with openai_key_container:
-                st.error(f"⚠️ Your most recent follow up message has been flagged by OpenAI's content moderation endpoint due to the following categories: {flagged_categories_str}.  \n" +
-                "In order to comply with [OpenAI's usage policy](https://openai.com/policies/usage-policies), we cannot send this message to the models. Please modify your message and try again.")
+                st.error(f"{e}")
 
 
     if init_prompt and init_prompt != '' and user_query_moderated == True:
