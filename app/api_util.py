@@ -102,76 +102,68 @@ class open_ai:
 
 
     def _get_chat_completion(self, model_config_dict, messages):
-        model_config_validated = self._validate_model_config(model_config_dict)
+        self._validate_model_config(model_config_dict)
         oai_messages = self._messages_to_oai_messages(messages)
 
-        if model_config_validated:
-            get_completion_call_string = (
-            """openai.ChatCompletion.create(
-                model="{0}",
-                messages={1},
-                temperature={2},
-                max_tokens={3},
-                top_p={4},
-                frequency_penalty={5},
-                presence_penalty={6},
-                stop=['{7}']
-                )""").format(
-                    model_config_dict['model'],
-                    oai_messages,
-                    model_config_dict['temperature'],
-                    model_config_dict['max_tokens'],
-                    model_config_dict['top_p'],
-                    model_config_dict['frequency_penalty'],
-                    model_config_dict['presence_penalty'],
-                    self.stop_sequence
-                )            
-            
-            try:
-                completions = self._invoke_call(get_completion_call_string)
-                return completions
-            except Exception as e:
-                raise 
-        else:
-            if not model_config_validated:
-                raise self.BadRequest("Bad Request. model_config_dict missing required fields")
+        get_completion_call_string = (
+        """openai.ChatCompletion.create(
+            model="{0}",
+            messages={1},
+            temperature={2},
+            max_tokens={3},
+            top_p={4},
+            frequency_penalty={5},
+            presence_penalty={6},
+            stop=['{7}']
+            )""").format(
+                model_config_dict['model'],
+                oai_messages,
+                model_config_dict['temperature'],
+                model_config_dict['max_tokens'],
+                model_config_dict['top_p'],
+                model_config_dict['frequency_penalty'],
+                model_config_dict['presence_penalty'],
+                self.stop_sequence
+            )            
+        
+        try:
+            completions = self._invoke_call(get_completion_call_string)
+            return completions
+        except Exception as e:
+            raise 
 
 
     def _get_completion(self, model_config_dict, messages):
-        model_config_validated = self._validate_model_config(model_config_dict)
+        self._validate_model_config(model_config_dict)
         oai_message = self._messages_to_oai_prompt_str(messages)
 
-        if model_config_validated:
-            get_completion_call_string = (
-            """openai.Completion.create(
-                model="{0}",
-                prompt="{1}",
-                temperature={2},
-                max_tokens={3},
-                top_p={4},
-                frequency_penalty={5},
-                presence_penalty={6},
-                stop=['{7}']
-                )""").format(
-                    model_config_dict['model'],
-                    oai_message,
-                    model_config_dict['temperature'],
-                    model_config_dict['max_tokens'],
-                    model_config_dict['top_p'],
-                    model_config_dict['frequency_penalty'],
-                    model_config_dict['presence_penalty'],
-                    self.stop_sequence
-                )            
-            
-            try:
-                completions = self._invoke_call(get_completion_call_string)
-                return completions
-            except Exception as e:
-                raise 
-        else:
-            if not model_config_validated:
-                raise self.BadRequest("Bad Request. model_config_dict missing required fields")
-            
+        get_completion_call_string = (
+        """openai.Completion.create(
+            model="{0}",
+            prompt="{1}",
+            temperature={2},
+            max_tokens={3},
+            top_p={4},
+            frequency_penalty={5},
+            presence_penalty={6},
+            stop=['{7}']
+            )""").format(
+                model_config_dict['model'],
+                oai_message,
+                model_config_dict['temperature'],
+                model_config_dict['max_tokens'],
+                model_config_dict['top_p'],
+                model_config_dict['frequency_penalty'],
+                model_config_dict['presence_penalty'],
+                self.stop_sequence
+            )            
+        
+        try:
+            completions = self._invoke_call(get_completion_call_string)
+            return completions
+        except Exception as e:
+            raise 
+
 
     # helper functions 
     def _validate_model_config(self, model_config_dict):
@@ -179,7 +171,7 @@ class open_ai:
 
         for field in required_fields:
             if field not in model_config_dict:
-                raise self.ClientRequestError("Bad model configuration request") 
+                raise self.BadRequest("Bad Request. model_config_dict missing required fields") 
         return True
 
 
