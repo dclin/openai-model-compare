@@ -64,14 +64,37 @@ def handler_fetch_model_responses():
 
     o = api.open_ai(api_key=st.session_state.oai_api_key, restart_sequence='|UR|', stop_sequence='|SP|')
     progress = 0 
+    user_query_moderated = True
 
     init_prompt = st.session_state.init_prompt
 
+    # Moderate prompt  
     if init_prompt and init_prompt != '':
+        moderation_result = o.get_moderation(user_message = init_prompt)
+        if moderation_result['flagged'] == True:
+            user_query_moderated = False 
+            flagged_categories_str = ", ".join(moderation_result['flagged_categories'])
+            with openai_key_container:
+                st.error(f"⚠️ Your prompt has been flagged by OpenAI's content moderation endpoint due to the following categories: {flagged_categories_str}.  \n" +
+                "In order to comply with [OpenAI's usage policy](https://openai.com/policies/usage-policies), we cannot send this prompt to the models. Please modify your prompt and try again.")
+
+    # Moderate follow-up message 
+    if "user_msg" in st.session_state and st.session_state.user_msg != '':
+        moderation_result = o.get_moderation(user_message = st.session_state.user_msg)
+        if moderation_result['flagged'] == True:
+            user_query_moderated = False 
+            flagged_categories_str = ", ".join(moderation_result['flagged_categories'])
+            with openai_key_container:
+                st.error(f"⚠️ Your most recent follow up message has been flagged by OpenAI's content moderation endpoint due to the following categories: {flagged_categories_str}.  \n" +
+                "In order to comply with [OpenAI's usage policy](https://openai.com/policies/usage-policies), we cannot send this message to the models. Please modify your message and try again.")
+
+
+    if init_prompt and init_prompt != '' and user_query_moderated == True:
         for index, m in enumerate(st.session_state.openai_models): 
             progress_bar_container.progress(progress, text=f"Getting {m} responses")
-            if "user_msg" in st.session_state and st.session_state.user_msg != '':
+            if "user_msg" in st.session_state and st.session_state.user_msg != '':             
                 st.session_state.chat_histories[m].append({'role':'user', 'message':st.session_state.user_msg, 'created_date':api.get_current_time()})
+            
             try:
                 b_r = o.get_ai_response(
                     model_config_dict={**model_config_template, 'model':m}, 
