@@ -12,6 +12,8 @@ help_msg_model_presence_penalty = "Prevents AI from repeating itself too much"
 help_msg_max_token = "OpenAI sets a limit on the number of tokens, or individual units of text, that each language model can generate in a single response. For example, text-davinci-003 has a limit of 4000 tokens, while other models have a limit of 2000 tokens. It's important to note that this limit is inclusive of the length of the initial prompt and all messages in the chat session. To ensure the best results, adjust the max token per response based on your specific use case and anticipated dialogue count and length in a session."
 helper_app_start = "Enter an initial prompt and, optionally a follow-up message, and click on _Fetch AI Responses_ to get responses from the OpenAI models. Each time you click on _Fetch AI Responses_, the app will add the AI responses and the user messages to the chat histories of each model. You can also adjust the model parameters and keep adding follow-up messages to test the model further. To start a new test with fresh chat histories, click on _Start a new Test_. Please note the chat messages are not truncated, so you should pay attention to the total token count of your chat sessions and ensure they are within the maximum token limit of the models."
 helper_app_need_api_key = "Welcome! This app allows you to test the effectiveness of your prompts using OpenAI's text models: gpt-3.5-turbo, text-davinci-003, and gpt-4 (if you have access to it). To get started, simply enter your OpenAI API Key below."
+helper_api_key_prompt = "The model comparison tool works best with pay-as-you-go API keys. Free trial API keys are limited to 3 requests a minute, not enough to test your prompts. For more information on OpenAI API rate limits, check [this link](https://platform.openai.com/docs/guides/rate-limits/overview).\n\n- Don't have an API key? No worries! Create one [here](https://platform.openai.com/account/api-keys).\n- Want to upgrade your free-trial API key? Just enter your billing information [here](https://platform.openai.com/account/billing/overview)."
+helper_api_key_placeholder = "Paste your OpenAI API key here (sk-...)"
 
 # Handlers 
 def handler_verify_key():
@@ -45,8 +47,8 @@ def handler_verify_key():
 
     except Exception as e: 
         with openai_key_container: 
-            st.error(f"OpenAI API error: {e}")
-        logging.error(f"OpenAI API error: {e}")
+            st.error(f"{e}")
+        logging.error(f"{e}")
 
 
 def handler_fetch_model_responses():
@@ -96,10 +98,18 @@ def handler_fetch_model_responses():
                 progress = (index + 1) / len(st.session_state.openai_models)
                 progress_bar_container.progress(progress, text=f"Getting {m} responses")
 
+            except o.OpenAIError as e:
+                logging.error(f"{e}")
+                with openai_key_container:
+                    if e.error_type == "RateLimitError" and str(e) == "OpenAI API Error: You exceeded your current quota, please check your plan and billing details.":
+                        st.error(f"{e}  \n  \n**Friendly reminder:** If you are using a free-trial OpenAI API key, this error is caused by the limited rate limits associated with the key. To optimize your experience, we recommend upgrading to the pay-as-you-go OpenAI plan.")
+                    else:
+                        st.error(f"{e}")
+
             except Exception as e: 
                 with openai_key_container:
-                    st.error(f"OpenAI API error: {e}")
-                logging.error(f"OpenAI API error: {e}")
+                    st.error(f"{e}")
+                logging.error(f"{e}")
                     
     progress_bar_container.empty()
 
@@ -148,7 +158,7 @@ def ui_sidebar():
   
 def ui_introduction():
     col1, col2 = st.columns([6,4])
-    col1.text_input(label="Enter OpenAI API Key", key="open_ai_key_input", type="password", autocomplete="current-password", on_change=handler_verify_key)
+    col1.text_input(label="Enter OpenAI API Key", key="open_ai_key_input", type="password", autocomplete="current-password", on_change=handler_verify_key, placeholder=helper_api_key_placeholder, help=helper_api_key_prompt)
     
 
 def ui_test_result(progress_bar_container):
