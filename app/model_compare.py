@@ -67,6 +67,7 @@ def handler_fetch_model_responses():
     user_query_moderated = True
 
     init_prompt = st.session_state.init_prompt
+    init_prompt = init_prompt.replace("\"","'")
 
     # Moderate prompt  
     if init_prompt and init_prompt != '':
@@ -87,7 +88,7 @@ def handler_fetch_model_responses():
     # Moderate follow-up message 
     if "user_msg" in st.session_state and st.session_state.user_msg != '':
         try:
-            moderation_result = o.get_moderation(user_message = st.session_state.user_msg)
+            moderation_result = o.get_moderation(user_message = st.session_state.user_msg.replace("\"","'"))
             if moderation_result['flagged'] == True:
                 user_query_moderated = False 
                 flagged_categories_str = ", ".join(moderation_result['flagged_categories'])
@@ -104,7 +105,7 @@ def handler_fetch_model_responses():
         for index, m in enumerate(st.session_state.openai_models): 
             progress_bar_container.progress(progress, text=f"Getting {m} responses")
             if "user_msg" in st.session_state and st.session_state.user_msg != '':             
-                st.session_state.chat_histories[m].append({'role':'user', 'message':st.session_state.user_msg, 'created_date':api.get_current_time()})
+                st.session_state.chat_histories[m].append({'role':'user', 'message':st.session_state.user_msg.replace("\"","'"), 'created_date':api.get_current_time()})
             
             try:
                 b_r = o.get_ai_response(
